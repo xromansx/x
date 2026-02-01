@@ -12,21 +12,18 @@ body {
   font-size: 22px;
 }
 
-h2 {
-  text-align: center;
-}
+h2 { text-align: center; }
 
-/* ===== GRID ===== */
+/* ===== GRID (FIXED) ===== */
 .columns {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
 
-/* Mobile + Tablet → 2 columns */
 @media (max-width: 900px) {
   .columns {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -35,6 +32,7 @@ h2 {
   border: 2px solid #ccc;
   border-radius: 12px;
   padding: 10px;
+  min-width: 0; /* VERY IMPORTANT */
 }
 
 .column h3 {
@@ -48,7 +46,7 @@ h2 {
   margin-bottom: 8px;
 }
 
-/* ===== EXERCISE ===== */
+/* ===== EXERCISES ===== */
 .exercise {
   display: flex;
   align-items: center;
@@ -57,12 +55,12 @@ h2 {
 }
 
 .exercise span {
-  width: 28px;
+  width: 26px;
   text-align: center;
 }
 
 .exercise input {
-  width: 72px;
+  width: 64px;
   font-size: 22px;
   text-align: center;
   padding: 6px;
@@ -70,8 +68,8 @@ h2 {
 }
 
 /* ===== FEEDBACK ===== */
-.correct { background-color: #b6f5b6; }
-.wrong   { background-color: #f7b1b1; }
+.correct { background: #b6f5b6; }
+.wrong { background: #f7b1b1; }
 
 /* ===== SUBMIT ===== */
 #submitBtn {
@@ -107,7 +105,7 @@ const allExercises = [];
 
 function formatTime(ms) {
   const s = Math.floor(ms / 1000);
-  return `${String(Math.floor(s / 60)).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`;
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
 }
 
 function generateExercise() {
@@ -121,7 +119,7 @@ function generateExercise() {
     if (op === "-" && b > a) [a, b] = [b, a];
     r = op === "+" ? a + b : a - b;
   } else {
-    b = Math.floor(Math.random() * 5) + 1;   // 1–5
+    b = Math.floor(Math.random() * 5) + 1;
     a = Math.floor(Math.random() * 10) + 1;
     if (op === "÷") a *= b;
     r = op === "×" ? a * b : a / b;
@@ -134,15 +132,12 @@ for (let c = 0; c < COLS; c++) {
   const colDiv = document.createElement("div");
   colDiv.className = "column";
 
-  const title = document.createElement("h3");
-  title.innerText = `Column ${c + 1}`;
-  colDiv.appendChild(title);
+  colDiv.innerHTML = `
+    <h3>Column ${c + 1}</h3>
+    <div class="timer">Time: 00:00</div>
+  `;
 
-  const timerDiv = document.createElement("div");
-  timerDiv.className = "timer";
-  timerDiv.innerText = "Time: 00:00";
-  colDiv.appendChild(timerDiv);
-
+  const timerDiv = colDiv.querySelector(".timer");
   let startTime = null;
   let interval = null;
   let finished = false;
@@ -151,7 +146,7 @@ for (let c = 0; c < COLS; c++) {
     if (startTime) return;
     startTime = Date.now();
     interval = setInterval(() => {
-      timerDiv.innerText = "Time: " + formatTime(Date.now() - startTime);
+      timerDiv.textContent = "Time: " + formatTime(Date.now() - startTime);
     }, 500);
   }
 
@@ -172,23 +167,20 @@ for (let c = 0; c < COLS; c++) {
 
     const input = exDiv.querySelector("input");
 
-    /* START TIMER ON MOBILE + DESKTOP */
     input.addEventListener("focus", startTimer);
     input.addEventListener("touchstart", startTimer, { passive: true });
     input.addEventListener("input", () => {
       startTimer();
-
       input.className =
         Number(input.value) === ex.r ? "correct" : "wrong";
 
-      const inputs = colDiv.querySelectorAll("input");
-      const correctCount = [...inputs]
-        .filter(i => i.classList.contains("correct")).length;
+      const correct =
+        colDiv.querySelectorAll(".correct").length;
 
-      if (correctCount === EX_PER_COL && !finished) {
+      if (correct === EX_PER_COL && !finished) {
         finished = true;
         clearInterval(interval);
-        timerDiv.innerText =
+        timerDiv.textContent =
           "Finished: " + formatTime(Date.now() - startTime);
 
         if (c === 0) {
@@ -203,9 +195,8 @@ for (let c = 0; c < COLS; c++) {
 
 function sendEmail() {
   let body = "Math Results\n\n";
-  allExercises.forEach((ex, i) => {
-    const v = document.querySelectorAll("input")[i].value || "";
-    body += `${ex.a} ${ex.op} ${ex.b} = ${v}\n`;
+  document.querySelectorAll(".exercise").forEach(e => {
+    body += e.textContent.trim() + "\n";
   });
 
   window.location.href =
