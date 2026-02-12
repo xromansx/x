@@ -180,17 +180,21 @@ for(let c=0;c<COLS;c++){
    const correctCount=
    col.querySelectorAll(".correct").length;
 
-   if(correctCount===EX_PER_COL&&!finished){
-    finished=true;
-    clearInterval(interval);
-    timerDiv.textContent=
-    "Finished: "+
-    formatTime(Date.now()-startTime);
+if(correctCount===EX_PER_COL && !finished){
 
-    if(c===0){
-     document.getElementById("submitBtn").style.display="block";
-    }
-   }
+ finished=true;
+ clearInterval(interval);
+
+ timerDiv.textContent =
+ "Finished: " + formatTime(Date.now()-startTime);
+
+ // SHOW SUBMIT WHEN FIRST COLUMN IS DONE
+ if(c === 0){
+   const btn = document.getElementById("submitBtn");
+   btn.style.display = "block";
+   btn.scrollIntoView({behavior:"smooth"});
+ }
+}
   });
 
   col.appendChild(row);
@@ -218,3 +222,4 @@ function generateCode(){
 
 </body>
 </html>
+
