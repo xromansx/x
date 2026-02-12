@@ -92,6 +92,8 @@ const COLS=4;
 const EX_PER_COL=28;
 const worksheet=document.getElementById("worksheet");
 
+let columnsFinished=0;
+
 function formatTime(ms){
  const s=Math.floor(ms/1000);
  return String(Math.floor(s/60)).padStart(2,'0')+":"+
@@ -180,21 +182,21 @@ for(let c=0;c<COLS;c++){
    const correctCount=
    col.querySelectorAll(".correct").length;
 
-if(correctCount===EX_PER_COL && !finished){
+   if(correctCount===EX_PER_COL && !finished){
 
- finished=true;
- clearInterval(interval);
+    finished=true;
+    columnsFinished++;
 
- timerDiv.textContent =
- "Finished: " + formatTime(Date.now()-startTime);
+    clearInterval(interval);
 
- // SHOW SUBMIT WHEN FIRST COLUMN IS DONE
- if(c === 0){
-   const btn = document.getElementById("submitBtn");
-   btn.style.display = "block";
-   btn.scrollIntoView({behavior:"smooth"});
- }
-}
+    timerDiv.textContent=
+    "Finished: "+
+    formatTime(Date.now()-startTime);
+
+    if(c===0){
+     document.getElementById("submitBtn").style.display="block";
+    }
+   }
   });
 
   col.appendChild(row);
@@ -209,11 +211,16 @@ function generateCode(){
  document.querySelectorAll(".correct").length;
 
  const today=new Date();
- const day=today.getDate();
- const month=today.getMonth()+1;
- const year=today.getFullYear();
 
- const code=((day+month+year)*2)+correctExercises;
+ const day=today.getDate();
+ const month2=(today.getMonth()+1)*2;
+ const correct2=correctExercises*2;
+
+ const code=
+ String(day)+
+ String(month2).padStart(2,'0')+
+ String(columnsFinished)+
+ String(correct2);
 
  document.getElementById("codeBox").textContent=
  "RESULT CODE: "+code;
@@ -222,4 +229,3 @@ function generateCode(){
 
 </body>
 </html>
-
