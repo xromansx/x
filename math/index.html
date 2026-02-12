@@ -119,111 +119,99 @@ function generateExercise(){
  return{a,b,op,r};
 }
 
+// CREATE COLUMNS
 for(let c=0;c<COLS;c++){
+ (function(colIndex){ // capture column index correctly
 
- const col=document.createElement("div");
- col.className="column";
+  const col=document.createElement("div");
+  col.className="column";
 
- col.innerHTML=
- "<h3>Column "+(c+1)+"</h3>"+
- "<div class='timer'>Time: 00:00</div>";
+  col.innerHTML=
+   "<h3>Column "+(colIndex+1)+"</h3>"+
+   "<div class='timer'>Time: 00:00</div>";
 
- const timerDiv=col.querySelector(".timer");
+  const timerDiv=col.querySelector(".timer");
 
- let startTime=null;
- let interval=null;
- let finished=false;
+  let startTime=null;
+  let interval=null;
+  let finished=false;
 
- function startTimer(){
-  if(startTime) return;
-  startTime=Date.now();
-  interval=setInterval(()=>{
-   timerDiv.textContent="Time: "+
-   formatTime(Date.now()-startTime);
-  },500);
- }
+  function startTimer(){
+   if(startTime) return;
+   startTime=Date.now();
+   interval=setInterval(()=>{
+    timerDiv.textContent="Time: "+formatTime(Date.now()-startTime);
+   },500);
+  }
 
- for(let i=0;i<EX_PER_COL;i++){
+  for(let i=0;i<EX_PER_COL;i++){
+   const ex=generateExercise();
+   let attempts=0;
 
-  const ex=generateExercise();
-  let attempts=0;
+   const row=document.createElement("div");
+   row.className="exercise";
 
-  const row=document.createElement("div");
-  row.className="exercise";
+   row.innerHTML=
+    "<span>"+ex.a+"</span>"+
+    "<span>"+ex.op+"</span>"+
+    "<span>"+ex.b+"</span>"+
+    "<span>=</span>"+
+    "<input type='number'>";
 
-  row.innerHTML=
-   "<span>"+ex.a+"</span>"+
-   "<span>"+ex.op+"</span>"+
-   "<span>"+ex.b+"</span>"+
-   "<span>=</span>"+
-   "<input type='number'>";
+   const input=row.querySelector("input");
 
-  const input=row.querySelector("input");
+   input.addEventListener("input",()=>{
+    if(input.disabled) return;
+    startTimer();
 
-  input.addEventListener("input",()=>{
+    const val=Number(input.value);
 
-   startTimer();
-
-   if(input.disabled)return;
-
-   const val=Number(input.value);
-
-   if(val===ex.r){
-    input.className="correct";
-    input.disabled=true;
-   }else{
-    attempts++;
-    input.className="wrong";
-    if(attempts>=6){
+    if(val===ex.r){
+     input.className="correct";
      input.disabled=true;
+    }else{
+     attempts++;
+     input.className="wrong";
+     if(attempts>=6){
+      input.disabled=true;
+     }
     }
-   }
 
-   const correctCount=
-   col.querySelectorAll(".correct").length;
+    const correctCount=col.querySelectorAll(".correct").length;
 
-   if(correctCount===EX_PER_COL && !finished){
+    if(correctCount===EX_PER_COL && !finished){
+     finished=true;
+     columnsFinished++;
+     clearInterval(interval);
+     timerDiv.textContent="Finished: "+formatTime(Date.now()-startTime);
 
-    finished=true;
-    columnsFinished++;
-
-    clearInterval(interval);
-
-    timerDiv.textContent=
-    "Finished: "+
-    formatTime(Date.now()-startTime);
-
-    if(c===0){
-     document.getElementById("submitBtn").style.display="block";
+     // show SUBMIT button immediately if first column
+     if(colIndex===0){
+      const btn=document.getElementById("submitBtn");
+      btn.style.display="block";
+      btn.scrollIntoView({behavior:"smooth"});
+     }
     }
-   }
-  });
+   });
 
-  col.appendChild(row);
- }
+   col.appendChild(row);
+  }
 
- worksheet.appendChild(col);
+  worksheet.appendChild(col);
+
+ })(c);
 }
 
 function generateCode(){
-
- const correctExercises=
- document.querySelectorAll(".correct").length;
-
+ const correctExercises=document.querySelectorAll(".correct").length;
  const today=new Date();
-
  const day=today.getDate();
  const month2=(today.getMonth()+1)*2;
  const correct2=correctExercises*2;
 
- const code=
- String(day)+
- String(month2).padStart(2,'0')+
- String(columnsFinished)+
- String(correct2);
+ const code=String(day)+String(month2).padStart(2,'0')+String(columnsFinished)+String(correct2);
 
- document.getElementById("codeBox").textContent=
- "RESULT CODE: "+code;
+ document.getElementById("codeBox").textContent="RESULT CODE: "+code;
 }
 </script>
 
